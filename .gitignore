@@ -1,0 +1,6 @@
+.env
+instance
+migrations
+__pycache__
+automate_setup.sh
+readme.md
