@@ -1,6 +1,5 @@
 from flask import Flask
 from sqlalchemy import MetaData
-from auth_user import auth_bp
 from secrets import token_hex
 
 
@@ -12,7 +11,6 @@ class Config:
 
 app = Flask(__name__)
 app.config.from_object('config.Config')
-app.register_blueprint(auth_bp)
 
 convention = {
     "ix": 'ix_%(column_0_label)s',

@@ -3,8 +3,10 @@ from models import db, Task, User
 from flask_migrate import Migrate
 from config import app
 from schemas import TaskSchema, UserSchema
+from auth_user import auth_bp
 
 
+app.register_blueprint(auth_bp)
 db.init_app(app)
 migrate = Migrate(app, db)
 
@@ -18,6 +20,15 @@ def get_all_tasks(username):
     tasks = schema.dump(tasks_query_result)
 
     return tasks
+
+@app.get('/users')
+def get_all_users():
+    schema = UserSchema(many=True)
+   
+    users_query_result = db.session.execute(db.select(User)).scalars()
+    users = schema.dump(users_query_result)
+
+    return users
 
 
 @app.put('/user/<string:username>/<string:task_name>')

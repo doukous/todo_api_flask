@@ -11,7 +11,7 @@ class Task(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __repr__(self):
-        return f'Task name : {self.name}'
+        return f'<Task name : {self.name}>'
 
 
 class User(db.Model):
@@ -23,4 +23,4 @@ class User(db.Model):
 
 
     def __repr__(self):
-        return f'Username : {self.username}'
+        return f'<Username : {self.username}>'

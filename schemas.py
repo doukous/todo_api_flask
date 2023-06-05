@@ -1,5 +1,5 @@
-from marshmallow import fields, Schema
-from models import Task
+from marshmallow import fields, Schema, post_load
+from models import User, Task, db
 
 
 class TaskSchema(Schema):
@@ -11,8 +11,16 @@ class TaskSchema(Schema):
 
 class UserSchema(Schema):
     id = fields.Int()
-    username = fields.Str()
-    password = fields.String()
-    email = fields.Email()
+    username = fields.Str(required=True)
+    password = fields.String(required=True)
+    email = fields.Email(required=True)
     tasks = fields.List(fields.Nested(Task))
+
+    @post_load
+    def register_user(self, data, **kwargs):
+        user = User(**data)
+        db.session.add(user)
+        db.session.commit()
+
+        return User(**data)
     
