@@ -1,12 +1,15 @@
+from secrets import token_hex
 from flask import Flask
 from sqlalchemy import MetaData
-from secrets import token_hex
 
+
+jwt_secret = token_hex(4)
 
 class Config:
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///database.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    JWT_SECRET_KEY = jwt_secret
 
 
 app = Flask(__name__)

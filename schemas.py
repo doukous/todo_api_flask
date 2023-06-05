@@ -1,5 +1,5 @@
 from marshmallow import fields, Schema, post_load
-from models import User, Task, db
+from models import User, Task
 
 
 class TaskSchema(Schema):
@@ -16,11 +16,4 @@ class UserSchema(Schema):
     email = fields.Email(required=True)
     tasks = fields.List(fields.Nested(Task))
 
-    @post_load
-    def register_user(self, data, **kwargs):
-        user = User(**data)
-        db.session.add(user)
-        db.session.commit()
-
-        return User(**data)
     
