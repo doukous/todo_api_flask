@@ -1,3 +1,4 @@
+import json
 from flask import request, jsonify
 from models import db, Task, User
 from flask_migrate import Migrate
@@ -13,10 +14,9 @@ migrate = Migrate(app, db)
 jwt = JWTManager(app)
 
 
-
 @app.get('/user/<string:username>')
 @jwt_required()
-def get_all_user_tasks(username):
+def get_user_tasks(username):
     task_schema = TaskSchema(many=True)
 
     user_jwt_id = get_jwt_identity()
@@ -25,12 +25,14 @@ def get_all_user_tasks(username):
     )
 
     tasks_query_result = db.session.execute(
-        db.select(Task).filter_by(user_id=user.id)
+        db.select(Task).filter_by(user_affiliated=user.id)
     ).scalars()
+
+    print(user, tasks_query_result == None)
         
     tasks = task_schema.dump(tasks_query_result)
 
-    return jsonify({'message': 'it works'})
+    return tasks
 
 @app.get('/users')
 def get_all_users():
@@ -45,13 +47,13 @@ def get_all_users():
 @app.put('/user/<string:username>/<string:task_name>')
 @jwt_required()
 def edit_status_completion(username, task_name):
-    task = Task(name=task_name)
+    task = Task(text=task_name)
     user = db.one_or_404(
         db.select(User).filter_by(username=username)
     )
 
     task = db.one_or_404(
-        db.select(Task).filter_by(name=task_name, user_id=user.id))
+        db.select(Task).filter_by(text=task_name, user_affiliated=user.id))
 
     task.completed = not task.completed
     db.session.commit()
@@ -69,10 +71,10 @@ def edit_task_list(username, task_name):
         db.select(User).filter_by(username=username)
     )
 
-    task = Task(name=task_name)
+    task = Task(text=task_name)
 
     if request.method == 'POST':
-        task = Task(name=task_name)
+        task = Task(text=task_name)
         
         db.session.add(task)
         db.session.commit()
@@ -87,7 +89,7 @@ def edit_task_list(username, task_name):
         )
 
         task = db.one_or_404(
-            db.select(Task).filter_by(name=task_name, user_id=user.id))
+            db.select(Task).filter_by(text=task_name, user_affiliated=user.id))
 
         db.session.delete(task)
         db.session.commit()
@@ -95,6 +97,30 @@ def edit_task_list(username, task_name):
         message = 'Task successfully deleted'
 
         return jsonify(message)
+
+def add_fake_user():
+    with open("./fake_data.json", "r", encoding='utf-8') as f:
+        data_list = json.load(f)
+
+        for data_dict in data_list:
+            tasks = data_dict["tasks"]
+
+            user_obj = User(
+                username = data_dict["username"],
+                email = data_dict["email"],
+                password = data_dict["password"], 
+                )
+            
+            with app.app_context():
+                db.session.add(user_obj)
+                db.session.commit()
+
+            for task in tasks:
+                task_obj = Task(text=task, user=user_obj)
+
+                with app.app_context():
+                    db.session.add(task_obj)
+                    db.session.commit()
 
 
 if __name__ == '__main__':
