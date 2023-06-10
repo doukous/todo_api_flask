@@ -15,7 +15,7 @@ class Task(db.Model):
     )
 
     def __repr__(self):
-        return f'<Task name : {self.name}>'
+        return f'<Task : {self.text}>'
 
 
 class User(db.Model):

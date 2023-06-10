@@ -30,9 +30,10 @@ def log_in():
 @auth_bp.post('/signup')
 def sign_up():
     data = request.get_json()
-    user_schema = UserSchema().load(data)
-    user = User(user_schema)
     
+    user_schema = UserSchema().load(data)
+    user = User(**user_schema)
+
     db.session.add(user)
     db.session.commit()
 

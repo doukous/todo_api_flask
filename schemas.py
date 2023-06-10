@@ -1,12 +1,4 @@
-from marshmallow import fields, Schema, post_load
-from models import User, Task
-
-
-class TaskSchema(Schema):
-    id = fields.Int()
-    text = fields.Str(required=True)
-    completed = fields.Bool()
-    user_affiliated = fields.Int(required=True)
+from marshmallow import fields, Schema
 
 
 class UserSchema(Schema):
@@ -14,4 +6,10 @@ class UserSchema(Schema):
     username = fields.Str(required=True)
     password = fields.String(required=True)
     email = fields.Email(required=True)
-    
+
+
+class TaskSchema(Schema):
+    id = fields.Int()
+    text = fields.Str(required=True)
+    completed = fields.Bool()
+    user_affiliated = fields.Int()
