@@ -1,15 +1,17 @@
+from datetime import timedelta
 from secrets import token_hex
 from flask import Flask
 from sqlalchemy import MetaData
 
 
-jwt_secret = token_hex(4)
+jwt_secret = 'test'
 
 class Config:
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///database.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = jwt_secret
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
 
 
 app = Flask(__name__)

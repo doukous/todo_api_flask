@@ -17,14 +17,11 @@ def log_in():
         db.select(User).filter_by(
         email=user["email"], password=user["password"])
     )
+    token_info = {'id': user_query_result.id}
+    user_token = create_access_token(token_info)    
+    message = 'log a user'
 
-    if user_query_result:
-        user_token = create_access_token(user_query_result.id)
-        message = 'log a user'
-
-        return jsonify(message, user_token)
-    
-    return jsonify(message="user not found"), 404
+    return jsonify(message, user_token)
 
 
 @auth_bp.post('/signup')

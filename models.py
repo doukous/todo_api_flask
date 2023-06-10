@@ -6,7 +6,7 @@ db = SQLAlchemy(metadata=metadata)
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    text = db.Column(db.String(30), nullable=False, unique=True)
+    text = db.Column(db.String(30), nullable=False)
     completed = db.Column(db.Boolean, default=False)
     user_affiliated = db.Column(
         db.Integer,
@@ -24,7 +24,7 @@ class User(db.Model):
     password = db.Column(db.String(20), nullable=False)
     email = db.Column(db.String(), nullable=False)
     tasks = db.relationship('Task', backref='user', passive_deletes=True)
-
-
+    
+    
     def __repr__(self):
         return f'<Username : {self.username}>'

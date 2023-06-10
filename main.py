@@ -1,5 +1,5 @@
 import json
-from flask import request
+from flask import jsonify, request
 from flask.views import MethodView
 from models import db, Task, User
 from flask_migrate import Migrate
@@ -27,10 +27,27 @@ def get_all_users():
     return users
 
 
+def get_user_task(username):
+    token_info = get_jwt_identity()
+    text = request.get_json()["text"]
+
+    user = db.one_or_404(
+            db.select(User).filter_by(username=username, id=token_info['id'])
+        )
+
+    task = db.one_or_404(
+        db.select(Task).filter_by(text=text, user_affiliated=user.id)
+    )
+
+    return task
+
+
 class TaskOperation(MethodView):
+    @jwt_required()
     def get(self, username):
+        token_info = get_jwt_identity()
         user = db.one_or_404(
-            db.select(User).filter_by(username=username)
+            db.select(User).filter_by(username=username, id=token_info['id'])
         )
 
         task_schema = TaskSchema(many=True)
@@ -39,34 +56,35 @@ class TaskOperation(MethodView):
         return tasks
         
 
+    @jwt_required()
     def post(self, username):
-        user = db.one_or_404(
-            db.select(User).filter_by(username=username)
-        )
-
-        data = request.get_json()
-        task_text = data['text']
-
-        task = Task(text=task_text, user=user)
-        db.session.add(task)
-        db.session.commit()
-
-        created_task = TaskSchema().dumps(task)
-
-        return created_task
-
-
-    def put(self, username):
-        text = request.get_json()["text"]
+        token_info = get_jwt_identity()
+        text = request.get_json()['text']
 
         user = db.one_or_404(
-            db.select(User).filter_by(username=username)
+            db.select(User).filter_by(username=username, id=token_info['id'])
         )
 
-        task = db.one_or_404(
-            db.select(Task).filter_by(text=text, user_affiliated=user.id)
-        )
+        task = db.session.execute(
+        db.select(Task).filter_by(text=text, user_affiliated=user.id)
+        ).scalar_one_or_none()
+
+        if not task:
+            task = Task(text=text, user=user)
+            db.session.add(task)
+            db.session.commit()
+
+            created_task = TaskSchema().dumps(task)
+
+            return created_task
         
+        else:
+            return jsonify({'message': 'Task already exists'}), 208
+
+
+    @jwt_required()
+    def put(self, username):
+        task = get_user_task(username)
         task.completed = not task.completed
         db.session.commit()
 
@@ -74,23 +92,18 @@ class TaskOperation(MethodView):
 
         return edited_task
 
+
+    @jwt_required()
     def delete(self, username):
-        text = request.get_json()["text"]
-
-        user = db.one_or_404(
-            db.select(User).filter_by(username=username)
-        )
-
-        task = db.one_or_404(
-            db.select(Task).filter_by(text=text, user_affiliated=user.id)
-        )
-
+        task = get_user_task(username)
+        
         db.session.delete(task)
         db.session.commit()
 
         deleted_task = TaskSchema().dumps(task)
 
         return deleted_task
+
 
 def add_fake_user():
     with open("./fake_data.json", "r", encoding='utf-8') as f:
